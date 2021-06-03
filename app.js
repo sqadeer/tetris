@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () =>{
     }
 
     // make the tetromino move down every second
-    timerId = setInterval(moveDown, 1500)
+    timerId = setInterval(moveDown, 300)
 
     // assign functions to keyCodes
     function control(event){
@@ -105,26 +105,54 @@ document.addEventListener('DOMContentLoaded', () =>{
 
     // move down function
     function moveDown(){
-        freeze()
+        console.log("m")
         undraw()
         currentPosition += width
         draw()
+        freeze()
     }
 
     // freeze function
     function freeze(){
-        if(currentShape.some(index => squares[currentPosition + index + width].classList.contains('taken'))){
-            currentShape.forEach(index => squares[currentPosition + index].classList.add('taken'))
-            // Start a new tetromino falling
-            randomTetrominoIndex =  Math.floor(Math.random()*theTetrominoes.length)
-            currentRotation = 0
-            currentPosition = 4
-            currentShape = theTetrominoes[randomTetrominoIndex][currentRotation]
-            currentTetromino = theTetrominoes[randomTetrominoIndex]
-            draw()
-            return true
+        if(isLineBelowTaken()){
+            freezeCurrShape();
+            updateCurrShapeAndTetro();
+            updateCurrPos(4);
+            if (isObstructed(currentShape)){  // checks if new shape obstructs
+                clearInterval(timerId);
+                console.log("obstructs!");
+            }
+            else if(isLineBelowTaken()){   // checks if line below new shape is taken
+                freezeCurrShape();
+                clearInterval(timerId);
+                console.log("freeze new shape");
+            }
+            else{
+                draw();  // this will start the new shape falling
+            }
+            return true;
         }
-        return false  
+        return false;  
+    }
+
+    function updateCurrShapeAndTetro(){
+        randomTetrominoIndex =  Math.floor(Math.random()*theTetrominoes.length);
+        currentRotation = 0;
+        currentShape = theTetrominoes[randomTetrominoIndex][currentRotation];
+        currentTetromino = theTetrominoes[randomTetrominoIndex];
+    }
+
+    // updates currentPosition
+    function updateCurrPos(pos){
+        currentPosition = pos;
+    }
+
+    function isLineBelowTaken(){
+        return currentShape.some(index => squares[currentPosition + index + width].classList.contains('taken'));
+    }
+
+    function freezeCurrShape(){
+        currentShape.forEach(index => squares[currentPosition + index].classList.add('taken'));
     }
 
     // move the tetromino left unless it is at an edge or there is a blockage
